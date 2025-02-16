@@ -20,7 +20,7 @@
 
 //go:build windows
 
-package zap
+package lad
 
 import (
 	"os"

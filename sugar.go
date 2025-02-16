@@ -18,12 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"fmt"
 
-	"go.uber.org/zap/zapcore"
+	"github.com/auwixcom/lad/ladcore"
 
 	"go.uber.org/multierr"
 )
@@ -132,14 +132,14 @@ func (s *SugaredLogger) WithLazy(args ...interface{}) *SugaredLogger {
 
 // Level reports the minimum enabled level for this logger.
 //
-// For NopLoggers, this is [zapcore.InvalidLevel].
-func (s *SugaredLogger) Level() zapcore.Level {
-	return zapcore.LevelOf(s.base.core)
+// For NopLoggers, this is [ladcore.InvalidLevel].
+func (s *SugaredLogger) Level() ladcore.Level {
+	return ladcore.LevelOf(s.base.core)
 }
 
 // Log logs the provided arguments at provided level.
 // Spaces are added between arguments when neither is a string.
-func (s *SugaredLogger) Log(lvl zapcore.Level, args ...interface{}) {
+func (s *SugaredLogger) Log(lvl ladcore.Level, args ...interface{}) {
 	s.log(lvl, "", args, nil)
 }
 
@@ -188,7 +188,7 @@ func (s *SugaredLogger) Fatal(args ...interface{}) {
 
 // Logf formats the message according to the format specifier
 // and logs it at provided level.
-func (s *SugaredLogger) Logf(lvl zapcore.Level, template string, args ...interface{}) {
+func (s *SugaredLogger) Logf(lvl ladcore.Level, template string, args ...interface{}) {
 	s.log(lvl, template, args, nil)
 }
 
@@ -237,7 +237,7 @@ func (s *SugaredLogger) Fatalf(template string, args ...interface{}) {
 
 // Logw logs a message with some additional context. The variadic key-value
 // pairs are treated as they are in With.
-func (s *SugaredLogger) Logw(lvl zapcore.Level, msg string, keysAndValues ...interface{}) {
+func (s *SugaredLogger) Logw(lvl ladcore.Level, msg string, keysAndValues ...interface{}) {
 	s.log(lvl, msg, nil, keysAndValues)
 }
 
@@ -290,7 +290,7 @@ func (s *SugaredLogger) Fatalw(msg string, keysAndValues ...interface{}) {
 
 // Logln logs a message at provided level.
 // Spaces are always added between arguments.
-func (s *SugaredLogger) Logln(lvl zapcore.Level, args ...interface{}) {
+func (s *SugaredLogger) Logln(lvl ladcore.Level, args ...interface{}) {
 	s.logln(lvl, args, nil)
 }
 
@@ -343,7 +343,7 @@ func (s *SugaredLogger) Sync() error {
 }
 
 // log message with Sprint, Sprintf, or neither.
-func (s *SugaredLogger) log(lvl zapcore.Level, template string, fmtArgs []interface{}, context []interface{}) {
+func (s *SugaredLogger) log(lvl ladcore.Level, template string, fmtArgs []interface{}, context []interface{}) {
 	// If logging at this level is completely disabled, skip the overhead of
 	// string formatting.
 	if lvl < DPanicLevel && !s.base.Core().Enabled(lvl) {
@@ -357,7 +357,7 @@ func (s *SugaredLogger) log(lvl zapcore.Level, template string, fmtArgs []interf
 }
 
 // logln message with Sprintln
-func (s *SugaredLogger) logln(lvl zapcore.Level, fmtArgs []interface{}, context []interface{}) {
+func (s *SugaredLogger) logln(lvl ladcore.Level, fmtArgs []interface{}, context []interface{}) {
 	if lvl < DPanicLevel && !s.base.Core().Enabled(lvl) {
 		return
 	}
@@ -458,7 +458,7 @@ type invalidPair struct {
 	key, value interface{}
 }
 
-func (p invalidPair) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+func (p invalidPair) MarshalLogObject(enc ladcore.ObjectEncoder) error {
 	enc.AddInt64("position", int64(p.position))
 	Any("key", p.key).AddTo(enc)
 	Any("value", p.value).AddTo(enc)
@@ -467,7 +467,7 @@ func (p invalidPair) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 
 type invalidPairs []invalidPair
 
-func (ps invalidPairs) MarshalLogArray(enc zapcore.ArrayEncoder) error {
+func (ps invalidPairs) MarshalLogArray(enc ladcore.ArrayEncoder) error {
 	var err error
 	for i := range ps {
 		err = multierr.Append(err, enc.AppendObject(ps[i]))

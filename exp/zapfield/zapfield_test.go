@@ -18,15 +18,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zapfield
+package ladfield
 
 import (
 	"sync"
 	"testing"
 
+	"github.com/auwixcom/lad"
+	"github.com/auwixcom/lad/ladcore"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 type (
@@ -47,11 +47,11 @@ func TestFieldConstructors(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		expect zap.Field
-		field  zap.Field
+		expect lad.Field
+		field  lad.Field
 	}{
-		{"Str", zap.Field{Type: zapcore.StringType, Key: "test key", String: "test value"}, Str(key, value)},
-		{"Strs", zap.Array("test key", stringArray[MyValue]{"test value 1", "test value 2"}), Strs(key, values)},
+		{"Str", lad.Field{Type: ladcore.StringType, Key: "test key", String: "test value"}, Str(key, value)},
+		{"Strs", lad.Array("test key", stringArray[MyValue]{"test value 1", "test value 2"}), Strs(key, values)},
 	}
 
 	for _, tt := range tests {
@@ -62,11 +62,11 @@ func TestFieldConstructors(t *testing.T) {
 	}
 }
 
-func assertCanBeReused(t testing.TB, field zap.Field) {
+func assertCanBeReused(t testing.TB, field lad.Field) {
 	var wg sync.WaitGroup
 
 	for i := 0; i < 100; i++ {
-		enc := zapcore.NewMapObjectEncoder()
+		enc := ladcore.NewMapObjectEncoder()
 
 		// Ensure using the field in multiple encoders in separate goroutines
 		// does not cause any races or panics.

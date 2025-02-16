@@ -19,19 +19,19 @@
 // THE SOFTWARE.
 
 // Package internal and its subpackages hold types and functionality
-// that are not part of Zap's public API.
+// that are not part of lad's public API.
 package internal
 
-import "go.uber.org/zap/zapcore"
+import "github.com/auwixcom/lad/ladcore"
 
 // LeveledEnabler is an interface satisfied by LevelEnablers that are able to
 // report their own level.
 //
-// This interface is defined to use more conveniently in tests and non-zapcore
+// This interface is defined to use more conveniently in tests and non-ladcore
 // packages.
-// This cannot be imported from zapcore because of the cyclic dependency.
+// This cannot be imported from ladcore because of the cyclic dependency.
 type LeveledEnabler interface {
-	zapcore.LevelEnabler
+	ladcore.LevelEnabler
 
-	Level() zapcore.Level
+	Level() ladcore.Level
 }

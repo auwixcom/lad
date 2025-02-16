@@ -18,11 +18,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package bufferpool houses zap's shared internal buffer pool. Third-party
+// Package bufferpool houses lad's shared internal buffer pool. Third-party
 // packages can recreate the same functionality with buffers.NewPool.
 package bufferpool
 
-import "go.uber.org/zap/buffer"
+import "github.com/auwixcom/lad/buffer"
 
 var (
 	_pool = buffer.NewPool()

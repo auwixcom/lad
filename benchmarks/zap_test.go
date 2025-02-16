@@ -25,10 +25,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/auwixcom/lad"
+	"github.com/auwixcom/lad/internal/ztest"
+	"github.com/auwixcom/lad/ladcore"
 	"go.uber.org/multierr"
-	"go.uber.org/zap"
-	"go.uber.org/zap/internal/ztest"
-	"go.uber.org/zap/zapcore"
 )
 
 var (
@@ -82,7 +82,7 @@ func getMessage(iter int) string {
 
 type users []*user
 
-func (uu users) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (uu users) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	var err error
 	for i := range uu {
 		err = multierr.Append(err, arr.AppendObject(uu[i]))
@@ -96,46 +96,46 @@ type user struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func (u *user) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+func (u *user) MarshalLogObject(enc ladcore.ObjectEncoder) error {
 	enc.AddString("name", u.Name)
 	enc.AddString("email", u.Email)
 	enc.AddInt64("createdAt", u.CreatedAt.UnixNano())
 	return nil
 }
 
-func newZapLogger(lvl zapcore.Level) *zap.Logger {
-	ec := zap.NewProductionEncoderConfig()
-	ec.EncodeDuration = zapcore.NanosDurationEncoder
-	ec.EncodeTime = zapcore.EpochNanosTimeEncoder
-	enc := zapcore.NewJSONEncoder(ec)
-	return zap.New(zapcore.NewCore(
+func newladLogger(lvl ladcore.Level) *lad.Logger {
+	ec := lad.NewProductionEncoderConfig()
+	ec.EncodeDuration = ladcore.NanosDurationEncoder
+	ec.EncodeTime = ladcore.EpochNanosTimeEncoder
+	enc := ladcore.NewJSONEncoder(ec)
+	return lad.New(ladcore.NewCore(
 		enc,
 		&ztest.Discarder{},
 		lvl,
 	))
 }
 
-func newSampledLogger(lvl zapcore.Level) *zap.Logger {
-	return zap.New(zapcore.NewSamplerWithOptions(
-		newZapLogger(zap.DebugLevel).Core(),
+func newSampledLogger(lvl ladcore.Level) *lad.Logger {
+	return lad.New(ladcore.NewSamplerWithOptions(
+		newladLogger(lad.DebugLevel).Core(),
 		100*time.Millisecond,
 		10, // first
 		10, // thereafter
 	))
 }
 
-func fakeFields() []zap.Field {
-	return []zap.Field{
-		zap.Int("int", _tenInts[0]),
-		zap.Ints("ints", _tenInts),
-		zap.String("string", _tenStrings[0]),
-		zap.Strings("strings", _tenStrings),
-		zap.Time("time", _tenTimes[0]),
-		zap.Times("times", _tenTimes),
-		zap.Object("user1", _oneUser),
-		zap.Object("user2", _oneUser),
-		zap.Array("users", _tenUsers),
-		zap.Error(errExample),
+func fakeFields() []lad.Field {
+	return []lad.Field{
+		lad.Int("int", _tenInts[0]),
+		lad.Ints("ints", _tenInts),
+		lad.String("string", _tenStrings[0]),
+		lad.Strings("strings", _tenStrings),
+		lad.Time("time", _tenTimes[0]),
+		lad.Times("times", _tenTimes),
+		lad.Object("user1", _oneUser),
+		lad.Object("user2", _oneUser),
+		lad.Array("users", _tenUsers),
+		lad.Error(errExample),
 	}
 }
 

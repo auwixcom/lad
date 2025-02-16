@@ -20,7 +20,7 @@
 
 //go:build go1.21
 
-package zapslog_test
+package ladslog_test
 
 import (
 	"context"
@@ -28,8 +28,8 @@ import (
 	"net"
 	"time"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/exp/zapslog"
+	"github.com/auwixcom/lad"
+	"github.com/auwixcom/lad/exp/ladslog"
 )
 
 type Password string
@@ -39,10 +39,10 @@ func (p Password) LogValue() slog.Value {
 }
 
 func Example_slog() {
-	logger := zap.NewExample(zap.IncreaseLevel(zap.InfoLevel))
+	logger := lad.NewExample(lad.IncreaseLevel(lad.InfoLevel))
 	defer logger.Sync()
 
-	sl := slog.New(zapslog.NewHandler(logger.Core()))
+	sl := slog.New(ladslog.NewHandler(logger.Core()))
 	ctx := context.Background()
 
 	sl.Info("user", "name", "Al", "secret", Password("secret"))

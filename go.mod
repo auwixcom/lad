@@ -1,4 +1,4 @@
-module go.uber.org/zap
+module github.com/auwixcom/lad
 
 go 1.19
 

@@ -18,23 +18,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"bytes"
 	"testing"
 
+	"github.com/auwixcom/lad/ladcore"
+	"github.com/auwixcom/lad/ladtest/observer"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap/zapcore"
-	"go.uber.org/zap/zaptest/observer"
 )
 
-func newLoggedEntry(level zapcore.Level, msg string, fields ...zapcore.Field) observer.LoggedEntry {
+func newLoggedEntry(level ladcore.Level, msg string, fields ...ladcore.Field) observer.LoggedEntry {
 	if len(fields) == 0 {
-		fields = []zapcore.Field{}
+		fields = []ladcore.Field{}
 	}
 	return observer.LoggedEntry{
-		Entry:   zapcore.Entry{Level: level, Message: msg},
+		Entry:   ladcore.Entry{Level: level, Message: msg},
 		Context: fields,
 	}
 }
@@ -42,7 +42,7 @@ func newLoggedEntry(level zapcore.Level, msg string, fields ...zapcore.Field) ob
 func TestIncreaseLevelTryDecrease(t *testing.T) {
 	errorOut := &bytes.Buffer{}
 	opts := []Option{
-		ErrorOutput(zapcore.AddSync(errorOut)),
+		ErrorOutput(ladcore.AddSync(errorOut)),
 	}
 	withLogger(t, WarnLevel, opts, func(logger *Logger, logs *observer.ObservedLogs) {
 		logger.Warn("original warn log")
@@ -68,7 +68,7 @@ func TestIncreaseLevelTryDecrease(t *testing.T) {
 func TestIncreaseLevel(t *testing.T) {
 	errorOut := &bytes.Buffer{}
 	opts := []Option{
-		ErrorOutput(zapcore.AddSync(errorOut)),
+		ErrorOutput(ladcore.AddSync(errorOut)),
 	}
 	withLogger(t, WarnLevel, opts, func(logger *Logger, logs *observer.ObservedLogs) {
 		logger.Warn("original warn log")

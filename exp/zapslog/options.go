@@ -20,7 +20,7 @@
 
 //go:build go1.21
 
-package zapslog
+package ladslog
 
 import "log/slog"
 
@@ -55,7 +55,7 @@ func WithCaller(enabled bool) HandlerOption {
 // (as enabled by the [WithCaller] option).
 //
 // When building wrappers around the Logger,
-// supplying this Option prevents Zap from always reporting
+// supplying this Option prevents lad from always reporting
 // the wrapper code as the caller.
 func WithCallerSkip(skip int) HandlerOption {
 	return handlerOptionFunc(func(log *Handler) {

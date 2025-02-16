@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap_test
+package lad_test
 
 import (
 	"encoding/json"
@@ -29,8 +29,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/auwixcom/lad"
+	"github.com/auwixcom/lad/ladcore"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -44,26 +44,26 @@ func TestAtomicLevelServeHTTP(t *testing.T) {
 		contentType   string
 		body          string
 		expectedCode  int
-		expectedLevel zapcore.Level
+		expectedLevel ladcore.Level
 	}{
 		{
 			desc:          "GET",
 			method:        http.MethodGet,
 			expectedCode:  http.StatusOK,
-			expectedLevel: zap.InfoLevel,
+			expectedLevel: lad.InfoLevel,
 		},
 		{
 			desc:          "PUT JSON",
 			method:        http.MethodPut,
 			expectedCode:  http.StatusOK,
-			expectedLevel: zap.WarnLevel,
+			expectedLevel: lad.WarnLevel,
 			body:          `{"level":"warn"}`,
 		},
 		{
 			desc:          "PUT URL encoded",
 			method:        http.MethodPut,
 			expectedCode:  http.StatusOK,
-			expectedLevel: zap.WarnLevel,
+			expectedLevel: lad.WarnLevel,
 			contentType:   "application/x-www-form-urlencoded",
 			body:          "level=warn",
 		},
@@ -72,7 +72,7 @@ func TestAtomicLevelServeHTTP(t *testing.T) {
 			method:        http.MethodPut,
 			query:         "?level=warn",
 			expectedCode:  http.StatusOK,
-			expectedLevel: zap.WarnLevel,
+			expectedLevel: lad.WarnLevel,
 			contentType:   "application/x-www-form-urlencoded",
 		},
 		{
@@ -80,7 +80,7 @@ func TestAtomicLevelServeHTTP(t *testing.T) {
 			method:        http.MethodPut,
 			query:         "?level=info",
 			expectedCode:  http.StatusOK,
-			expectedLevel: zap.WarnLevel,
+			expectedLevel: lad.WarnLevel,
 			contentType:   "application/x-www-form-urlencoded",
 			body:          "level=warn",
 		},
@@ -89,7 +89,7 @@ func TestAtomicLevelServeHTTP(t *testing.T) {
 			method:        http.MethodPut,
 			query:         "?level=info",
 			expectedCode:  http.StatusOK,
-			expectedLevel: zap.WarnLevel,
+			expectedLevel: lad.WarnLevel,
 			body:          `{"level":"warn"}`,
 		},
 		{
@@ -155,8 +155,8 @@ func TestAtomicLevelServeHTTP(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			lvl := zap.NewAtomicLevel()
-			lvl.SetLevel(zapcore.InfoLevel)
+			lvl := lad.NewAtomicLevel()
+			lvl.SetLevel(ladcore.InfoLevel)
 
 			server := httptest.NewServer(lvl)
 			defer server.Close()
@@ -185,7 +185,7 @@ func TestAtomicLevelServeHTTP(t *testing.T) {
 			}
 
 			var pld struct {
-				Level zapcore.Level `json:"level"`
+				Level ladcore.Level `json:"level"`
 			}
 			require.NoError(t, json.NewDecoder(res.Body).Decode(&pld), "Decoding response body")
 			assert.Equal(t, tt.expectedLevel, pld.Level, "Unexpected logging level returned")
@@ -196,7 +196,7 @@ func TestAtomicLevelServeHTTP(t *testing.T) {
 func TestAtomicLevelServeHTTPBrokenWriter(t *testing.T) {
 	t.Parallel()
 
-	lvl := zap.NewAtomicLevel()
+	lvl := lad.NewAtomicLevel()
 
 	request, err := http.NewRequest(http.MethodGet, "http://localhost:1234/log/level", nil)
 	require.NoError(t, err, "Error constructing request.")
@@ -218,7 +218,7 @@ func (w *brokenHTTPResponseWriter) Write([]byte) (int, error) {
 }
 
 func TestAtomicLevelServeHTTPBadLevel(t *testing.T) {
-	srv := httptest.NewServer(zap.NewAtomicLevel())
+	srv := httptest.NewServer(lad.NewAtomicLevel())
 	defer srv.Close()
 
 	req, err := http.NewRequest(http.MethodPut, srv.URL, strings.NewReader(`{"level":"<script>alert(\"malicious\")</script>"}`))
@@ -243,7 +243,7 @@ func FuzzAtomicLevelServeHTTP(f *testing.F) {
 	f.Add(`{"level":"warn"}`)
 	f.Add(`{"level":"<script>alert(\"malicious\")</script>"}`)
 	f.Fuzz(func(t *testing.T, input string) {
-		lvl := zap.NewAtomicLevel()
+		lvl := lad.NewAtomicLevel()
 
 		resw := httptest.NewRecorder()
 		req, err := http.NewRequest(http.MethodPut, "http://localhost:9999/log/level", strings.NewReader(input))

@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// readme generates Zap's README from a template.
+// readme generates lad's README from a template.
 package main
 
 import (
@@ -36,8 +36,8 @@ import (
 )
 
 var libraryNameToMarkdownName = map[string]string{
-	"Zap":                   ":zap: zap",
-	"Zap.Sugar":             ":zap: zap (sugared)",
+	"lad":                   ":lad: lad",
+	"lad.Sugar":             ":lad: lad (sugared)",
 	"stdlib.Println":        "standard library",
 	"sirupsen/logrus":       "logrus",
 	"go-kit/kit/log":        "go-kit",
@@ -97,8 +97,8 @@ func getBenchmarkRows(benchmarkName string) (string, error) {
 		return "", err
 	}
 
-	// get the Zap time (unsugared) as baseline to compare with other loggers
-	baseline, err := getBenchmarkRow(benchmarkOutput, benchmarkName, "Zap", nil)
+	// get the lad time (unsugared) as baseline to compare with other loggers
+	baseline, err := getBenchmarkRow(benchmarkOutput, benchmarkName, "lad", nil)
 	if err != nil {
 		return "", err
 	}
@@ -118,7 +118,7 @@ func getBenchmarkRows(benchmarkName string) (string, error) {
 	}
 	sort.Sort(benchmarkRowsByTime(benchmarkRows))
 	rows := []string{
-		"| Package | Time | Time % to zap | Objects Allocated |",
+		"| Package | Time | Time % to lad | Objects Allocated |",
 		"| :------ | :--: | :-----------: | :---------------: |",
 	}
 	for _, benchmarkRow := range benchmarkRows {
@@ -161,9 +161,9 @@ func getBenchmarkRow(
 	}
 
 	if baseline != nil {
-		r.ZapTime = baseline.Time
-		r.ZapAllocatedBytes = baseline.AllocatedBytes
-		r.ZapAllocatedObjects = baseline.AllocatedObjects
+		r.ladTime = baseline.Time
+		r.ladAllocatedBytes = baseline.AllocatedBytes
+		r.ladAllocatedObjects = baseline.AllocatedObjects
 	}
 
 	return r, nil
@@ -205,9 +205,9 @@ type benchmarkRow struct {
 	AllocatedBytes   int
 	AllocatedObjects int
 
-	ZapTime             time.Duration
-	ZapAllocatedBytes   int
-	ZapAllocatedObjects int
+	ladTime             time.Duration
+	ladAllocatedBytes   int
+	ladAllocatedObjects int
 }
 
 func (b *benchmarkRow) String() string {
@@ -218,7 +218,7 @@ func (b *benchmarkRow) String() string {
 		)
 	}
 	t := b.Time.Nanoseconds()
-	tp := pct(t, b.ZapTime.Nanoseconds())
+	tp := pct(t, b.ladTime.Nanoseconds())
 
 	return fmt.Sprintf(
 		"| %s | %d ns/op | %s | %d allocs/op", b.Name,
@@ -232,12 +232,12 @@ func (b benchmarkRowsByTime) Len() int      { return len(b) }
 func (b benchmarkRowsByTime) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
 func (b benchmarkRowsByTime) Less(i, j int) bool {
 	left, right := b[i], b[j]
-	leftZap, rightZap := strings.Contains(left.Name, "zap"), strings.Contains(right.Name, "zap")
+	leftlad, rightlad := strings.Contains(left.Name, "lad"), strings.Contains(right.Name, "lad")
 
-	// If neither benchmark is for zap or both are, sort by time.
-	if leftZap == rightZap {
+	// If neither benchmark is for lad or both are, sort by time.
+	if leftlad == rightlad {
 		return left.Time.Nanoseconds() < right.Time.Nanoseconds()
 	}
-	// Sort zap benchmark first.
-	return leftZap
+	// Sort lad benchmark first.
+	return leftlad
 }

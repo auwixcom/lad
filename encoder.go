@@ -18,25 +18,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"errors"
 	"fmt"
 	"sync"
 
-	"go.uber.org/zap/zapcore"
+	"github.com/auwixcom/lad/ladcore"
 )
 
 var (
 	errNoEncoderNameSpecified = errors.New("no encoder name specified")
 
-	_encoderNameToConstructor = map[string]func(zapcore.EncoderConfig) (zapcore.Encoder, error){
-		"console": func(encoderConfig zapcore.EncoderConfig) (zapcore.Encoder, error) {
-			return zapcore.NewConsoleEncoder(encoderConfig), nil
+	_encoderNameToConstructor = map[string]func(ladcore.EncoderConfig) (ladcore.Encoder, error){
+		"console": func(encoderConfig ladcore.EncoderConfig) (ladcore.Encoder, error) {
+			return ladcore.NewConsoleEncoder(encoderConfig), nil
 		},
-		"json": func(encoderConfig zapcore.EncoderConfig) (zapcore.Encoder, error) {
-			return zapcore.NewJSONEncoder(encoderConfig), nil
+		"json": func(encoderConfig ladcore.EncoderConfig) (ladcore.Encoder, error) {
+			return ladcore.NewJSONEncoder(encoderConfig), nil
 		},
 	}
 	_encoderMutex sync.RWMutex
@@ -48,7 +48,7 @@ var (
 //
 // Attempting to register an encoder whose name is already taken returns an
 // error.
-func RegisterEncoder(name string, constructor func(zapcore.EncoderConfig) (zapcore.Encoder, error)) error {
+func RegisterEncoder(name string, constructor func(ladcore.EncoderConfig) (ladcore.Encoder, error)) error {
 	_encoderMutex.Lock()
 	defer _encoderMutex.Unlock()
 	if name == "" {
@@ -61,7 +61,7 @@ func RegisterEncoder(name string, constructor func(zapcore.EncoderConfig) (zapco
 	return nil
 }
 
-func newEncoder(name string, encoderConfig zapcore.EncoderConfig) (zapcore.Encoder, error) {
+func newEncoder(name string, encoderConfig ladcore.EncoderConfig) (ladcore.Encoder, error) {
 	if encoderConfig.TimeKey != "" && encoderConfig.EncodeTime == nil {
 		return nil, errors.New("missing EncodeTime in EncoderConfig")
 	}

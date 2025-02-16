@@ -18,11 +18,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
-	"go.uber.org/zap/internal/pool"
-	"go.uber.org/zap/zapcore"
+	"github.com/auwixcom/lad/internal/pool"
+	"github.com/auwixcom/lad/ladcore"
 )
 
 var _errArrayElemPool = pool.New(func() *errArrayElem {
@@ -45,12 +45,12 @@ func NamedError(key string, err error) Field {
 	if err == nil {
 		return Skip()
 	}
-	return Field{Key: key, Type: zapcore.ErrorType, Interface: err}
+	return Field{Key: key, Type: ladcore.ErrorType, Interface: err}
 }
 
 type errArray []error
 
-func (errs errArray) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (errs errArray) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range errs {
 		if errs[i] == nil {
 			continue
@@ -75,7 +75,7 @@ type errArrayElem struct {
 	error
 }
 
-func (e *errArrayElem) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+func (e *errArrayElem) MarshalLogObject(enc ladcore.ObjectEncoder) error {
 	// Re-use the error field's logic, which supports non-standard error types.
 	Error(e.error).AddTo(enc)
 	return nil

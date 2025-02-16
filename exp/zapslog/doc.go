@@ -18,8 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package zapslog provides an implementation of slog.Handler which writes to
-// the supplied zapcore.Core.
+// Package ladslog provides an implementation of slog.Handler which writes to
+// the supplied ladcore.Core.
 //
 // Use of this package requires at least Go 1.21.
-package zapslog // import "go.uber.org/zap/exp/zapslog"
+package ladslog // import "github.com/auwixcom/lad/exp/ladslog"

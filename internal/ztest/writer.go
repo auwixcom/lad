@@ -27,7 +27,7 @@ import (
 	"strings"
 )
 
-// A Syncer is a spy for the Sync portion of zapcore.WriteSyncer.
+// A Syncer is a spy for the Sync portion of ladcore.WriteSyncer.
 type Syncer struct {
 	err    error
 	called bool
@@ -75,7 +75,7 @@ func (w ShortWriter) Write(b []byte) (int, error) {
 	return len(b) - 1, nil
 }
 
-// Buffer is an implementation of zapcore.WriteSyncer that sends all writes to
+// Buffer is an implementation of ladcore.WriteSyncer that sends all writes to
 // a bytes.Buffer. It has convenience methods to split the accumulated buffer
 // on newlines.
 type Buffer struct {

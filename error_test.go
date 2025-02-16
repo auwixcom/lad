@@ -18,14 +18,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"errors"
 	"fmt"
 	"testing"
 
-	"go.uber.org/zap/zapcore"
+	"github.com/auwixcom/lad/ladcore"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,9 +40,9 @@ func TestErrorConstructors(t *testing.T) {
 		expect Field
 	}{
 		{"Error", Skip(), Error(nil)},
-		{"Error", Field{Key: "error", Type: zapcore.ErrorType, Interface: fail}, Error(fail)},
+		{"Error", Field{Key: "error", Type: ladcore.ErrorType, Interface: fail}, Error(fail)},
 		{"NamedError", Skip(), NamedError("foo", nil)},
-		{"NamedError", Field{Key: "foo", Type: zapcore.ErrorType, Interface: fail}, NamedError("foo", fail)},
+		{"NamedError", Field{Key: "foo", Type: ladcore.ErrorType, Interface: fail}, NamedError("foo", fail)},
 		{"Any:Error", Any("k", errors.New("v")), NamedError("k", errors.New("v"))},
 		{"Any:Errors", Any("k", []error{errors.New("v")}), Errors("k", []error{errors.New("v")})},
 	}
@@ -70,7 +70,7 @@ func TestErrorArrayConstructor(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		enc := zapcore.NewMapObjectEncoder()
+		enc := ladcore.NewMapObjectEncoder()
 		tt.field.Key = "k"
 		tt.field.AddTo(enc)
 		assert.Equal(t, tt.expected, enc.Fields["k"], "%s: unexpected map contents.", tt.desc)
@@ -81,7 +81,7 @@ func TestErrorArrayConstructor(t *testing.T) {
 func TestErrorsArraysHandleRichErrors(t *testing.T) {
 	errs := []error{fmt.Errorf("egad")}
 
-	enc := zapcore.NewMapObjectEncoder()
+	enc := ladcore.NewMapObjectEncoder()
 	Errors("k", errs).AddTo(enc)
 	assert.Equal(t, 1, len(enc.Fields), "Expected only top-level field.")
 
@@ -102,7 +102,7 @@ func TestErrArrayBrokenEncoder(t *testing.T) {
 	failWith := errors.New("great sadness")
 	err := (brokenArrayObjectEncoder{
 		Err:           failWith,
-		ObjectEncoder: zapcore.NewMapObjectEncoder(),
+		ObjectEncoder: ladcore.NewMapObjectEncoder(),
 	}).AddArray("errors", errArray{
 		errors.New("foo"),
 		errors.New("bar"),
@@ -114,20 +114,20 @@ func TestErrArrayBrokenEncoder(t *testing.T) {
 // brokenArrayObjectEncoder is an ObjectEncoder
 // that builds a broken ArrayEncoder.
 type brokenArrayObjectEncoder struct {
-	zapcore.ObjectEncoder
-	zapcore.ArrayEncoder
+	ladcore.ObjectEncoder
+	ladcore.ArrayEncoder
 
 	Err error // error to return
 }
 
-func (enc brokenArrayObjectEncoder) AddArray(key string, marshaler zapcore.ArrayMarshaler) error {
+func (enc brokenArrayObjectEncoder) AddArray(key string, marshaler ladcore.ArrayMarshaler) error {
 	return enc.ObjectEncoder.AddArray(key,
-		zapcore.ArrayMarshalerFunc(func(ae zapcore.ArrayEncoder) error {
+		ladcore.ArrayMarshalerFunc(func(ae ladcore.ArrayEncoder) error {
 			enc.ArrayEncoder = ae
 			return marshaler.MarshalLogArray(enc)
 		}))
 }
 
-func (enc brokenArrayObjectEncoder) AppendObject(zapcore.ObjectMarshaler) error {
+func (enc brokenArrayObjectEncoder) AppendObject(ladcore.ObjectMarshaler) error {
 	return enc.Err
 }

@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"math"
@@ -28,14 +28,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/auwixcom/lad/internal/stacktrace"
+	"github.com/auwixcom/lad/ladcore"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap/internal/stacktrace"
-	"go.uber.org/zap/zapcore"
 )
 
 type username string
 
-func (n username) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+func (n username) MarshalLogObject(enc ladcore.ObjectEncoder) error {
 	enc.AddString("username", string(n))
 	return nil
 }
@@ -44,7 +44,7 @@ func assertCanBeReused(t testing.TB, field Field) {
 	var wg sync.WaitGroup
 
 	for i := 0; i < 100; i++ {
-		enc := zapcore.NewMapObjectEncoder()
+		enc := ladcore.NewMapObjectEncoder()
 
 		// Ensure using the field in multiple encoders in separate goroutines
 		// does not cause any races or panics.
@@ -95,37 +95,37 @@ func TestFieldConstructors(t *testing.T) {
 		field  Field
 		expect Field
 	}{
-		{"Skip", Field{Type: zapcore.SkipType}, Skip()},
-		{"Binary", Field{Key: "k", Type: zapcore.BinaryType, Interface: []byte("ab12")}, Binary("k", []byte("ab12"))},
-		{"Bool", Field{Key: "k", Type: zapcore.BoolType, Integer: 1}, Bool("k", true)},
-		{"Bool", Field{Key: "k", Type: zapcore.BoolType, Integer: 0}, Bool("k", false)},
-		{"ByteString", Field{Key: "k", Type: zapcore.ByteStringType, Interface: []byte("ab12")}, ByteString("k", []byte("ab12"))},
-		{"Complex128", Field{Key: "k", Type: zapcore.Complex128Type, Interface: 1 + 2i}, Complex128("k", 1+2i)},
-		{"Complex64", Field{Key: "k", Type: zapcore.Complex64Type, Interface: complex64(1 + 2i)}, Complex64("k", 1+2i)},
-		{"Duration", Field{Key: "k", Type: zapcore.DurationType, Integer: 1}, Duration("k", 1)},
-		{"Int", Field{Key: "k", Type: zapcore.Int64Type, Integer: 1}, Int("k", 1)},
-		{"Int64", Field{Key: "k", Type: zapcore.Int64Type, Integer: 1}, Int64("k", 1)},
-		{"Int32", Field{Key: "k", Type: zapcore.Int32Type, Integer: 1}, Int32("k", 1)},
-		{"Int16", Field{Key: "k", Type: zapcore.Int16Type, Integer: 1}, Int16("k", 1)},
-		{"Int8", Field{Key: "k", Type: zapcore.Int8Type, Integer: 1}, Int8("k", 1)},
-		{"String", Field{Key: "k", Type: zapcore.StringType, String: "foo"}, String("k", "foo")},
-		{"Time", Field{Key: "k", Type: zapcore.TimeType, Integer: 0, Interface: time.UTC}, Time("k", time.Unix(0, 0).In(time.UTC))},
-		{"Time", Field{Key: "k", Type: zapcore.TimeType, Integer: 1000, Interface: time.UTC}, Time("k", time.Unix(0, 1000).In(time.UTC))},
-		{"Time", Field{Key: "k", Type: zapcore.TimeType, Integer: math.MinInt64, Interface: time.UTC}, Time("k", time.Unix(0, math.MinInt64).In(time.UTC))},
-		{"Time", Field{Key: "k", Type: zapcore.TimeType, Integer: math.MaxInt64, Interface: time.UTC}, Time("k", time.Unix(0, math.MaxInt64).In(time.UTC))},
-		{"Time", Field{Key: "k", Type: zapcore.TimeFullType, Interface: time.Time{}}, Time("k", time.Time{})},
-		{"Time", Field{Key: "k", Type: zapcore.TimeFullType, Interface: time.Unix(math.MaxInt64, 0)}, Time("k", time.Unix(math.MaxInt64, 0))},
-		{"Uint", Field{Key: "k", Type: zapcore.Uint64Type, Integer: 1}, Uint("k", 1)},
-		{"Uint64", Field{Key: "k", Type: zapcore.Uint64Type, Integer: 1}, Uint64("k", 1)},
-		{"Uint32", Field{Key: "k", Type: zapcore.Uint32Type, Integer: 1}, Uint32("k", 1)},
-		{"Uint16", Field{Key: "k", Type: zapcore.Uint16Type, Integer: 1}, Uint16("k", 1)},
-		{"Uint8", Field{Key: "k", Type: zapcore.Uint8Type, Integer: 1}, Uint8("k", 1)},
-		{"Uintptr", Field{Key: "k", Type: zapcore.UintptrType, Integer: 10}, Uintptr("k", 0xa)},
-		{"Reflect", Field{Key: "k", Type: zapcore.ReflectType, Interface: ints}, Reflect("k", ints)},
-		{"Reflect", Field{Key: "k", Type: zapcore.ReflectType}, Reflect("k", nil)},
-		{"Stringer", Field{Key: "k", Type: zapcore.StringerType, Interface: addr}, Stringer("k", addr)},
-		{"Object", Field{Key: "k", Type: zapcore.ObjectMarshalerType, Interface: name}, Object("k", name)},
-		{"Inline", Field{Type: zapcore.InlineMarshalerType, Interface: name}, Inline(name)},
+		{"Skip", Field{Type: ladcore.SkipType}, Skip()},
+		{"Binary", Field{Key: "k", Type: ladcore.BinaryType, Interface: []byte("ab12")}, Binary("k", []byte("ab12"))},
+		{"Bool", Field{Key: "k", Type: ladcore.BoolType, Integer: 1}, Bool("k", true)},
+		{"Bool", Field{Key: "k", Type: ladcore.BoolType, Integer: 0}, Bool("k", false)},
+		{"ByteString", Field{Key: "k", Type: ladcore.ByteStringType, Interface: []byte("ab12")}, ByteString("k", []byte("ab12"))},
+		{"Complex128", Field{Key: "k", Type: ladcore.Complex128Type, Interface: 1 + 2i}, Complex128("k", 1+2i)},
+		{"Complex64", Field{Key: "k", Type: ladcore.Complex64Type, Interface: complex64(1 + 2i)}, Complex64("k", 1+2i)},
+		{"Duration", Field{Key: "k", Type: ladcore.DurationType, Integer: 1}, Duration("k", 1)},
+		{"Int", Field{Key: "k", Type: ladcore.Int64Type, Integer: 1}, Int("k", 1)},
+		{"Int64", Field{Key: "k", Type: ladcore.Int64Type, Integer: 1}, Int64("k", 1)},
+		{"Int32", Field{Key: "k", Type: ladcore.Int32Type, Integer: 1}, Int32("k", 1)},
+		{"Int16", Field{Key: "k", Type: ladcore.Int16Type, Integer: 1}, Int16("k", 1)},
+		{"Int8", Field{Key: "k", Type: ladcore.Int8Type, Integer: 1}, Int8("k", 1)},
+		{"String", Field{Key: "k", Type: ladcore.StringType, String: "foo"}, String("k", "foo")},
+		{"Time", Field{Key: "k", Type: ladcore.TimeType, Integer: 0, Interface: time.UTC}, Time("k", time.Unix(0, 0).In(time.UTC))},
+		{"Time", Field{Key: "k", Type: ladcore.TimeType, Integer: 1000, Interface: time.UTC}, Time("k", time.Unix(0, 1000).In(time.UTC))},
+		{"Time", Field{Key: "k", Type: ladcore.TimeType, Integer: math.MinInt64, Interface: time.UTC}, Time("k", time.Unix(0, math.MinInt64).In(time.UTC))},
+		{"Time", Field{Key: "k", Type: ladcore.TimeType, Integer: math.MaxInt64, Interface: time.UTC}, Time("k", time.Unix(0, math.MaxInt64).In(time.UTC))},
+		{"Time", Field{Key: "k", Type: ladcore.TimeFullType, Interface: time.Time{}}, Time("k", time.Time{})},
+		{"Time", Field{Key: "k", Type: ladcore.TimeFullType, Interface: time.Unix(math.MaxInt64, 0)}, Time("k", time.Unix(math.MaxInt64, 0))},
+		{"Uint", Field{Key: "k", Type: ladcore.Uint64Type, Integer: 1}, Uint("k", 1)},
+		{"Uint64", Field{Key: "k", Type: ladcore.Uint64Type, Integer: 1}, Uint64("k", 1)},
+		{"Uint32", Field{Key: "k", Type: ladcore.Uint32Type, Integer: 1}, Uint32("k", 1)},
+		{"Uint16", Field{Key: "k", Type: ladcore.Uint16Type, Integer: 1}, Uint16("k", 1)},
+		{"Uint8", Field{Key: "k", Type: ladcore.Uint8Type, Integer: 1}, Uint8("k", 1)},
+		{"Uintptr", Field{Key: "k", Type: ladcore.UintptrType, Integer: 10}, Uintptr("k", 0xa)},
+		{"Reflect", Field{Key: "k", Type: ladcore.ReflectType, Interface: ints}, Reflect("k", ints)},
+		{"Reflect", Field{Key: "k", Type: ladcore.ReflectType}, Reflect("k", nil)},
+		{"Stringer", Field{Key: "k", Type: ladcore.StringerType, Interface: addr}, Stringer("k", addr)},
+		{"Object", Field{Key: "k", Type: ladcore.ObjectMarshalerType, Interface: name}, Object("k", name)},
+		{"Inline", Field{Type: ladcore.InlineMarshalerType, Interface: name}, Inline(name)},
 		{"Any:ObjectMarshaler", Any("k", name), Object("k", name)},
 		{"Any:ArrayMarshaler", Any("k", bools([]bool{true})), Array("k", bools([]bool{true}))},
 		{"Any:Dict", Any("k", []Field{String("k", "v")}), Dict("k", String("k", "v"))},
@@ -252,7 +252,7 @@ func TestFieldConstructors(t *testing.T) {
 		{"Any:PtrUintptr", Any("k", (*uintptr)(nil)), nilField("k")},
 		{"Any:PtrUintptr", Any("k", &uintptrVal), Uintptr("k", uintptrVal)},
 		{"Any:ErrorNil", Any("k", nilErr), nilField("k")},
-		{"Namespace", Namespace("k"), Field{Key: "k", Type: zapcore.NamespaceType}},
+		{"Namespace", Namespace("k"), Field{Key: "k", Type: ladcore.NamespaceType}},
 	}
 
 	for _, tt := range tests {
@@ -268,7 +268,7 @@ func TestFieldConstructors(t *testing.T) {
 func TestStackField(t *testing.T) {
 	f := Stack("stacktrace")
 	assert.Equal(t, "stacktrace", f.Key, "Unexpected field key.")
-	assert.Equal(t, zapcore.StringType, f.Type, "Unexpected field type.")
+	assert.Equal(t, ladcore.StringType, f.Type, "Unexpected field type.")
 	r := regexp.MustCompile(`field_test.go:(\d+)`)
 	assert.Equal(t, r.ReplaceAllString(stacktrace.Take(0), "field_test.go"), r.ReplaceAllString(f.String, "field_test.go"), "Unexpected stack trace")
 	assertCanBeReused(t, f)
@@ -277,7 +277,7 @@ func TestStackField(t *testing.T) {
 func TestStackSkipField(t *testing.T) {
 	f := StackSkip("stacktrace", 0)
 	assert.Equal(t, "stacktrace", f.Key, "Unexpected field key.")
-	assert.Equal(t, zapcore.StringType, f.Type, "Unexpected field type.")
+	assert.Equal(t, ladcore.StringType, f.Type, "Unexpected field type.")
 	r := regexp.MustCompile(`field_test.go:(\d+)`)
 	assert.Equal(t, r.ReplaceAllString(stacktrace.Take(0), "field_test.go"), r.ReplaceAllString(f.String, "field_test.go"), f.String, "Unexpected stack trace")
 	assertCanBeReused(t, f)
@@ -286,7 +286,7 @@ func TestStackSkipField(t *testing.T) {
 func TestStackSkipFieldWithSkip(t *testing.T) {
 	f := StackSkip("stacktrace", 1)
 	assert.Equal(t, "stacktrace", f.Key, "Unexpected field key.")
-	assert.Equal(t, zapcore.StringType, f.Type, "Unexpected field type.")
+	assert.Equal(t, ladcore.StringType, f.Type, "Unexpected field type.")
 	assert.Equal(t, stacktrace.Take(1), f.String, "Unexpected stack trace")
 	assertCanBeReused(t, f)
 }
@@ -304,7 +304,7 @@ func TestDict(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			enc := zapcore.NewMapObjectEncoder()
+			enc := ladcore.NewMapObjectEncoder()
 			tt.field.Key = "k"
 			tt.field.AddTo(enc)
 			assert.Equal(t, tt.expected, enc.Fields["k"], "unexpected map contents")
@@ -333,7 +333,7 @@ func TestDictObject(t *testing.T) {
 		},
 		{
 			"objects",
-			Objects("", []zapcore.ObjectMarshaler{
+			Objects("", []ladcore.ObjectMarshaler{
 				DictObject(String("k", "v")),
 				DictObject(String("k2", "v2")),
 			}),
@@ -346,7 +346,7 @@ func TestDictObject(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			enc := zapcore.NewMapObjectEncoder()
+			enc := ladcore.NewMapObjectEncoder()
 			tt.field.Key = "k"
 			tt.field.AddTo(enc)
 			assert.Equal(t, tt.expected, enc.Fields["k"], "unexpected map contents")

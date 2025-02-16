@@ -25,9 +25,9 @@ package stacktrace
 import (
 	"runtime"
 
-	"go.uber.org/zap/buffer"
-	"go.uber.org/zap/internal/bufferpool"
-	"go.uber.org/zap/internal/pool"
+	"github.com/auwixcom/lad/buffer"
+	"github.com/auwixcom/lad/internal/bufferpool"
+	"github.com/auwixcom/lad/internal/pool"
 )
 
 var _stackPool = pool.New(func() *Stack {

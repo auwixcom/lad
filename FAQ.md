@@ -29,10 +29,10 @@ just the methods you use.
 
 ### Why are some of my logs missing?
 
-Logs are dropped intentionally by zap when sampling is enabled. The production
+Logs are dropped intentionally by lad when sampling is enabled. The production
 configuration (as returned by `NewProductionConfig()` enables sampling which will
 cause repeated logs within a second to be sampled. See more details on why sampling
-is enabled in [Why sample application logs](https://github.com/uber-go/zap/blob/master/FAQ.md#why-sample-application-logs).
+is enabled in [Why sample application logs](https://github.com/uber-go/lad/blob/master/FAQ.md#why-sample-application-logs).
 
 ### Why sample application logs?
 
@@ -45,7 +45,7 @@ when you need it most.
 
 Sampling fixes this problem by dropping repetitive log entries. Under normal
 conditions, your application writes out every entry. When similar entries are
-logged hundreds or thousands of times each second, though, zap begins dropping
+logged hundreds or thousands of times each second, though, lad begins dropping
 duplicates to preserve throughput.
 
 ### Why do the structured logging APIs take a message in addition to fields?
@@ -54,7 +54,7 @@ Subjectively, we find it helpful to accompany structured context with a brief
 description. This isn't critical during development, but it makes debugging
 and operating unfamiliar systems much easier.
 
-More concretely, zap's sampling algorithm uses the message to identify
+More concretely, lad's sampling algorithm uses the message to identify
 duplicate entries. In our experience, this is a practical middle ground
 between random sampling (which often drops the exact entry that you need while
 debugging) and hashing the complete entry (which is prohibitively expensive).
@@ -63,7 +63,7 @@ debugging) and hashing the complete entry (which is prohibitively expensive).
 
 Since so many other logging packages include a global logger, many
 applications aren't designed to accept loggers as explicit parameters.
-Changing function signatures is often a breaking change, so zap includes
+Changing function signatures is often a breaking change, so lad includes
 global loggers to simplify migration.
 
 Avoid them where possible.
@@ -76,11 +76,11 @@ crash when an error is truly unrecoverable. To avoid losing any information
 &mdash; especially the reason for the crash &mdash; the logger must flush any
 buffered entries before the process exits.
 
-Zap makes this easy by offering `Panic` and `Fatal` logging methods that
+lad makes this easy by offering `Panic` and `Fatal` logging methods that
 automatically flush before exiting. Of course, this doesn't guarantee that
 logs will never be lost, but it eliminates a common error.
 
-See the discussion in uber-go/zap#207 for more details.
+See the discussion in uber-go/lad#207 for more details.
 
 ### What's `DPanic`?
 
@@ -99,65 +99,65 @@ if err != nil {
 
 ## Installation
 
-### What does the error `expects import "go.uber.org/zap"` mean?
+### What does the error `expects import "github.com/auwixcom/lad"` mean?
 
-Either zap was installed incorrectly or you're referencing the wrong package
+Either lad was installed incorrectly or you're referencing the wrong package
 name in your code.
 
-Zap's source code happens to be hosted on GitHub, but the [import
-path][import-path] is `go.uber.org/zap`. This gives us, the project
+lad's source code happens to be hosted on GitHub, but the [import
+path][import-path] is `github.com/auwixcom/lad`. This gives us, the project
 maintainers, the freedom to move the source code if necessary. However, it
 means that you need to take a little care when installing and using the
 package.
 
-If you follow two simple rules, everything should work: install zap with `go
-get -u go.uber.org/zap`, and always import it in your code with `import
-"go.uber.org/zap"`. Your code shouldn't contain *any* references to
-`github.com/uber-go/zap`.
+If you follow two simple rules, everything should work: install lad with `go
+get -u github.com/auwixcom/lad`, and always import it in your code with `import
+"github.com/auwixcom/lad"`. Your code shouldn't contain *any* references to
+`github.com/uber-go/lad`.
 
 ## Usage
 
-### Does zap support log rotation?
+### Does lad support log rotation?
 
-Zap doesn't natively support rotating log files, since we prefer to leave this
+lad doesn't natively support rotating log files, since we prefer to leave this
 to an external program like `logrotate`.
 
 However, it's easy to integrate a log rotation package like
-[`gopkg.in/natefinch/lumberjack.v2`][lumberjack] as a `zapcore.WriteSyncer`.
+[`gopkg.in/natefinch/lumberjack.v2`][lumberjack] as a `ladcore.WriteSyncer`.
 
 ```go
 // lumberjack.Logger is already safe for concurrent use, so we don't need to
 // lock it.
-w := zapcore.AddSync(&lumberjack.Logger{
+w := ladcore.AddSync(&lumberjack.Logger{
   Filename:   "/var/log/myapp/foo.log",
   MaxSize:    500, // megabytes
   MaxBackups: 3,
   MaxAge:     28, // days
 })
-core := zapcore.NewCore(
-  zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig()),
+core := ladcore.NewCore(
+  ladcore.NewJSONEncoder(lad.NewProductionEncoderConfig()),
   w,
-  zap.InfoLevel,
+  lad.InfoLevel,
 )
-logger := zap.New(core)
+logger := lad.New(core)
 ```
 
 ## Extensions
 
-We'd love to support every logging need within zap itself, but we're only
+We'd love to support every logging need within lad itself, but we're only
 familiar with a handful of log ingestion systems, flag-parsing packages, and
 the like. Rather than merging code that we can't effectively debug and
-support, we'd rather grow an ecosystem of zap extensions.
+support, we'd rather grow an ecosystem of lad extensions.
 
 We're aware of the following extensions, but haven't used them ourselves:
 
 | Package | Integration |
 | --- | --- |
-| `github.com/tchap/zapext` | Sentry, syslog |
-| `github.com/fgrosse/zaptest` | Ginkgo |
-| `github.com/blendle/zapdriver` | Stackdriver |
-| `github.com/moul/zapgorm` | Gorm |
-| `github.com/moul/zapfilter` | Advanced filtering rules |
+| `github.com/tchap/ladext` | Sentry, syslog |
+| `github.com/fgrosse/ladtest` | Ginkgo |
+| `github.com/blendle/laddriver` | Stackdriver |
+| `github.com/moul/ladgorm` | Gorm |
+| `github.com/moul/ladfilter` | Advanced filtering rules |
 
 [go-proverbs]: https://go-proverbs.github.io/
 [import-path]: https://golang.org/cmd/go/#hdr-Remote_import_paths

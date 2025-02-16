@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"bytes"
@@ -27,14 +27,14 @@ import (
 	"os"
 	"sync"
 
-	"go.uber.org/zap/zapcore"
+	"github.com/auwixcom/lad/ladcore"
 )
 
 const (
 	_stdLogDefaultDepth      = 1
 	_loggerWriterDepth       = 2
-	_programmerErrorTemplate = "You've found a bug in zap! Please file a bug at " +
-		"https://github.com/uber-go/zap/issues/new and reference this error: %v"
+	_programmerErrorTemplate = "You've found a bug in lad! Please file a bug at " +
+		"https://github.com/uber-go/lad/issues/new and reference this error: %v"
 )
 
 var (
@@ -72,7 +72,7 @@ func ReplaceGlobals(logger *Logger) func() {
 	return func() { ReplaceGlobals(prev) }
 }
 
-// NewStdLog returns a *log.Logger which writes to the supplied zap Logger at
+// NewStdLog returns a *log.Logger which writes to the supplied lad Logger at
 // InfoLevel. To redirect the standard library's package-global logging
 // functions, use RedirectStdLog instead.
 func NewStdLog(l *Logger) *log.Logger {
@@ -81,9 +81,9 @@ func NewStdLog(l *Logger) *log.Logger {
 	return log.New(&loggerWriter{f}, "" /* prefix */, 0 /* flags */)
 }
 
-// NewStdLogAt returns *log.Logger which writes to supplied zap logger at
+// NewStdLogAt returns *log.Logger which writes to supplied lad logger at
 // required level.
-func NewStdLogAt(l *Logger, level zapcore.Level) (*log.Logger, error) {
+func NewStdLogAt(l *Logger, level ladcore.Level) (*log.Logger, error) {
 	logger := l.WithOptions(AddCallerSkip(_stdLogDefaultDepth + _loggerWriterDepth))
 	logFunc, err := levelToFunc(logger, level)
 	if err != nil {
@@ -93,7 +93,7 @@ func NewStdLogAt(l *Logger, level zapcore.Level) (*log.Logger, error) {
 }
 
 // RedirectStdLog redirects output from the standard library's package-global
-// logger to the supplied logger at InfoLevel. Since zap already handles caller
+// logger to the supplied logger at InfoLevel. Since lad already handles caller
 // annotations, timestamps, etc., it automatically disables the standard
 // library's annotations and prefixing.
 //
@@ -110,17 +110,17 @@ func RedirectStdLog(l *Logger) func() {
 }
 
 // RedirectStdLogAt redirects output from the standard library's package-global
-// logger to the supplied logger at the specified level. Since zap already
+// logger to the supplied logger at the specified level. Since lad already
 // handles caller annotations, timestamps, etc., it automatically disables the
 // standard library's annotations and prefixing.
 //
 // It returns a function to restore the original prefix and flags and reset the
 // standard library's output to os.Stderr.
-func RedirectStdLogAt(l *Logger, level zapcore.Level) (func(), error) {
+func RedirectStdLogAt(l *Logger, level ladcore.Level) (func(), error) {
 	return redirectStdLogAt(l, level)
 }
 
-func redirectStdLogAt(l *Logger, level zapcore.Level) (func(), error) {
+func redirectStdLogAt(l *Logger, level ladcore.Level) (func(), error) {
 	flags := log.Flags()
 	prefix := log.Prefix()
 	log.SetFlags(0)
@@ -138,7 +138,7 @@ func redirectStdLogAt(l *Logger, level zapcore.Level) (func(), error) {
 	}, nil
 }
 
-func levelToFunc(logger *Logger, lvl zapcore.Level) (func(string, ...Field), error) {
+func levelToFunc(logger *Logger, lvl ladcore.Level) (func(string, ...Field), error) {
 	switch lvl {
 	case DebugLevel:
 		return logger.Debug, nil

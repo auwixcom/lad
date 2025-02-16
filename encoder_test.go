@@ -18,12 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"testing"
 
-	"go.uber.org/zap/zapcore"
+	"github.com/auwixcom/lad/ladcore"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -53,25 +53,25 @@ func TestRegisterEncoderNoName(t *testing.T) {
 func TestNewEncoder(t *testing.T) {
 	testEncoders(func() {
 		assert.NoError(t, RegisterEncoder("foo", newNilEncoder), "expected to be able to register the encoder foo")
-		encoder, err := newEncoder("foo", zapcore.EncoderConfig{})
+		encoder, err := newEncoder("foo", ladcore.EncoderConfig{})
 		assert.NoError(t, err, "could not create an encoder for the registered name foo")
 		assert.Nil(t, encoder, "the encoder from newNilEncoder is not nil")
 	})
 }
 
 func TestNewEncoderNotRegistered(t *testing.T) {
-	_, err := newEncoder("foo", zapcore.EncoderConfig{})
+	_, err := newEncoder("foo", ladcore.EncoderConfig{})
 	assert.Error(t, err, "expected an error when trying to create an encoder of an unregistered name")
 }
 
 func TestNewEncoderNoName(t *testing.T) {
-	_, err := newEncoder("", zapcore.EncoderConfig{})
+	_, err := newEncoder("", ladcore.EncoderConfig{})
 	assert.Equal(t, errNoEncoderNameSpecified, err, "expected an error when creating an encoder with no name")
 }
 
 func testEncoders(f func()) {
 	existing := _encoderNameToConstructor
-	_encoderNameToConstructor = make(map[string]func(zapcore.EncoderConfig) (zapcore.Encoder, error))
+	_encoderNameToConstructor = make(map[string]func(ladcore.EncoderConfig) (ladcore.Encoder, error))
 	defer func() { _encoderNameToConstructor = existing }()
 	f()
 }
@@ -83,6 +83,6 @@ func testEncodersRegistered(t *testing.T, names ...string) {
 	}
 }
 
-func newNilEncoder(_ zapcore.EncoderConfig) (zapcore.Encoder, error) {
+func newNilEncoder(_ ladcore.EncoderConfig) (ladcore.Encoder, error) {
 	return nil, nil
 }

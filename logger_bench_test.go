@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"errors"
@@ -28,8 +28,8 @@ import (
 	"testing"
 	"time"
 
-	"go.uber.org/zap/internal/ztest"
-	"go.uber.org/zap/zapcore"
+	"github.com/auwixcom/lad/internal/ztest"
+	"github.com/auwixcom/lad/ladcore"
 )
 
 type user struct {
@@ -38,7 +38,7 @@ type user struct {
 	CreatedAt time.Time
 }
 
-func (u *user) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+func (u *user) MarshalLogObject(enc ladcore.ObjectEncoder) error {
 	enc.AddString("name", u.Name)
 	enc.AddString("email", u.Email)
 	enc.AddInt64("created_at", u.CreatedAt.UnixNano())
@@ -53,8 +53,8 @@ var _jane = &user{
 
 func withBenchedLogger(b *testing.B, f func(*Logger)) {
 	logger := New(
-		zapcore.NewCore(
-			zapcore.NewJSONEncoder(NewProductionConfig().EncoderConfig),
+		ladcore.NewCore(
+			ladcore.NewJSONEncoder(NewProductionConfig().EncoderConfig),
 			&ztest.Discarder{},
 			DebugLevel,
 		))
@@ -167,8 +167,8 @@ func BenchmarkReflectField(b *testing.B) {
 
 func BenchmarkAddCallerHook(b *testing.B) {
 	logger := New(
-		zapcore.NewCore(
-			zapcore.NewJSONEncoder(NewProductionConfig().EncoderConfig),
+		ladcore.NewCore(
+			ladcore.NewJSONEncoder(NewProductionConfig().EncoderConfig),
 			&ztest.Discarder{},
 			InfoLevel,
 		),
@@ -184,8 +184,8 @@ func BenchmarkAddCallerHook(b *testing.B) {
 
 func BenchmarkAddCallerAndStacktrace(b *testing.B) {
 	logger := New(
-		zapcore.NewCore(
-			zapcore.NewJSONEncoder(NewProductionConfig().EncoderConfig),
+		ladcore.NewCore(
+			ladcore.NewJSONEncoder(NewProductionConfig().EncoderConfig),
 			&ztest.Discarder{},
 			InfoLevel,
 		),
@@ -220,7 +220,7 @@ func Benchmark5WithLazysNotUsed(b *testing.B) {
 	benchmarkWithUsed(b, (*Logger).WithLazy, 5, false)
 }
 
-func benchmarkWithUsed(b *testing.B, withMethod func(*Logger, ...zapcore.Field) *Logger, N int, use bool) {
+func benchmarkWithUsed(b *testing.B, withMethod func(*Logger, ...ladcore.Field) *Logger, N int, use bool) {
 	keys := make([]string, N)
 	values := make([]string, N)
 	for i := 0; i < N; i++ {
@@ -261,8 +261,8 @@ func Benchmark10Fields(b *testing.B) {
 
 func Benchmark100Fields(b *testing.B) {
 	const batchSize = 50
-	logger := New(zapcore.NewCore(
-		zapcore.NewJSONEncoder(NewProductionConfig().EncoderConfig),
+	logger := New(ladcore.NewCore(
+		ladcore.NewJSONEncoder(NewProductionConfig().EncoderConfig),
 		&ztest.Discarder{},
 		DebugLevel,
 	))

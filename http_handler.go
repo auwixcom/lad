@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"encoding/json"
@@ -27,7 +27,7 @@ import (
 	"io"
 	"net/http"
 
-	"go.uber.org/zap/zapcore"
+	"github.com/auwixcom/lad/ladcore"
 )
 
 // ServeHTTP is a simple JSON endpoint that can report on or change the current
@@ -80,7 +80,7 @@ func (lvl AtomicLevel) serveHTTP(w http.ResponseWriter, r *http.Request) error {
 		Error string `json:"error"`
 	}
 	type payload struct {
-		Level zapcore.Level `json:"level"`
+		Level ladcore.Level `json:"level"`
 	}
 
 	enc := json.NewEncoder(w)
@@ -107,28 +107,28 @@ func (lvl AtomicLevel) serveHTTP(w http.ResponseWriter, r *http.Request) error {
 }
 
 // Decodes incoming PUT requests and returns the requested logging level.
-func decodePutRequest(contentType string, r *http.Request) (zapcore.Level, error) {
+func decodePutRequest(contentType string, r *http.Request) (ladcore.Level, error) {
 	if contentType == "application/x-www-form-urlencoded" {
 		return decodePutURL(r)
 	}
 	return decodePutJSON(r.Body)
 }
 
-func decodePutURL(r *http.Request) (zapcore.Level, error) {
+func decodePutURL(r *http.Request) (ladcore.Level, error) {
 	lvl := r.FormValue("level")
 	if lvl == "" {
 		return 0, errors.New("must specify logging level")
 	}
-	var l zapcore.Level
+	var l ladcore.Level
 	if err := l.UnmarshalText([]byte(lvl)); err != nil {
 		return 0, err
 	}
 	return l, nil
 }
 
-func decodePutJSON(body io.Reader) (zapcore.Level, error) {
+func decodePutJSON(body io.Reader) (ladcore.Level, error) {
 	var pld struct {
-		Level *zapcore.Level `json:"level"`
+		Level *ladcore.Level `json:"level"`
 	}
 	if err := json.NewDecoder(body).Decode(&pld); err != nil {
 		return 0, fmt.Errorf("malformed request body: %v", err)

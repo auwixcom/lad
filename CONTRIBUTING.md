@@ -1,6 +1,6 @@
 # Contributing
 
-We'd love your help making zap the very best structured logging library in Go!
+We'd love your help making lad the very best structured logging library in Go!
 
 If you'd like to add new exported APIs, please [open an issue][open-issue]
 describing your proposal &mdash; discussing API changes ahead of time makes
@@ -19,9 +19,9 @@ you to accept the CLA when you open your pull request.
 ```bash
 mkdir -p $GOPATH/src/go.uber.org
 cd $GOPATH/src/go.uber.org
-git clone git@github.com:your_github_username/zap.git
-cd zap
-git remote add upstream https://github.com/uber-go/zap.git
+git clone git@github.com:your_github_username/lad.git
+cd lad
+git remote add upstream https://github.com/uber-go/lad.git
 git fetch upstream
 ```
 
@@ -37,7 +37,7 @@ make lint
 Start by creating a new branch for your changes:
 
 ```bash
-cd $GOPATH/src/go.uber.org/zap
+cd $GOPATH/src/github.com/auwixcom/lad
 git checkout master
 git fetch upstream
 git rebase upstream/master
@@ -64,7 +64,7 @@ We're much more likely to approve your changes if you:
 - Write a [good commit message][commit-message].
 - Maintain backward compatibility.
 
-[fork]: https://github.com/uber-go/zap/fork
-[open-issue]: https://github.com/uber-go/zap/issues/new
-[cla]: https://cla-assistant.io/uber-go/zap
+[fork]: https://github.com/uber-go/lad/fork
+[open-issue]: https://github.com/uber-go/lad/issues/new
+[cla]: https://cla-assistant.io/uber-go/lad
 [commit-message]: http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html

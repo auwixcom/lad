@@ -8,7 +8,7 @@ GOVULNCHECK = $(GOBIN)/govulncheck
 BENCH_FLAGS ?= -cpuprofile=cpu.pprof -memprofile=mem.pprof -benchmem
 
 # Directories containing independent Go modules.
-MODULE_DIRS = . ./exp ./benchmarks ./zapgrpc/internal/test
+MODULE_DIRS = . ./exp ./benchmarks ./ladgrpc/internal/test
 
 # Directories that we want to track coverage for.
 COVER_DIRS = . ./exp

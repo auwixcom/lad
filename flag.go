@@ -18,12 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"flag"
 
-	"go.uber.org/zap/zapcore"
+	"github.com/auwixcom/lad/ladcore"
 )
 
 // LevelFlag uses the standard library's flag.Var to declare a global flag
@@ -32,7 +32,7 @@ import (
 //
 // If you don't want to use the flag package's global state, you can use any
 // non-nil *Level as a flag.Value with your own *flag.FlagSet.
-func LevelFlag(name string, defaultLevel zapcore.Level, usage string) *zapcore.Level {
+func LevelFlag(name string, defaultLevel ladcore.Level, usage string) *ladcore.Level {
 	lvl := defaultLevel
 	flag.Var(&lvl, name, usage)
 	return &lvl

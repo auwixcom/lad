@@ -18,22 +18,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package zapfield provides experimental zap.Field helpers whose APIs may be unstable.
-package zapfield
+// Package ladfield provides experimental lad.Field helpers whose APIs may be unstable.
+package ladfield
 
 import (
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/auwixcom/lad"
+	"github.com/auwixcom/lad/ladcore"
 )
 
 // Str constructs a field with the given string-like key and value.
-func Str[K ~string, V ~string](k K, v V) zap.Field {
-	return zap.String(string(k), string(v))
+func Str[K ~string, V ~string](k K, v V) lad.Field {
+	return lad.String(string(k), string(v))
 }
 
 type stringArray[T ~string] []T
 
-func (a stringArray[T]) MarshalLogArray(enc zapcore.ArrayEncoder) error {
+func (a stringArray[T]) MarshalLogArray(enc ladcore.ArrayEncoder) error {
 	for i := range a {
 		enc.AppendString(string(a[i]))
 	}
@@ -41,6 +41,6 @@ func (a stringArray[T]) MarshalLogArray(enc zapcore.ArrayEncoder) error {
 }
 
 // Strs constructs a field that carries a slice of string-like values.
-func Strs[K ~string, V ~[]S, S ~string](k K, v V) zap.Field {
-	return zap.Array(string(k), stringArray[S](v))
+func Strs[K ~string, V ~[]S, S ~string](k K, v V) lad.Field {
+	return lad.Array(string(k), stringArray[S](v))
 }

@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"fmt"
@@ -26,9 +26,9 @@ import (
 	"os"
 	"strings"
 
-	"go.uber.org/zap/internal/bufferpool"
-	"go.uber.org/zap/internal/stacktrace"
-	"go.uber.org/zap/zapcore"
+	"github.com/auwixcom/lad/internal/bufferpool"
+	"github.com/auwixcom/lad/internal/stacktrace"
+	"github.com/auwixcom/lad/ladcore"
 )
 
 // A Logger provides fast, leveled, structured logging. All methods are safe
@@ -39,25 +39,25 @@ import (
 // safety over brevity. For most applications, the SugaredLogger strikes a
 // better balance between performance and ergonomics.
 type Logger struct {
-	core zapcore.Core
+	core ladcore.Core
 
 	development bool
 	addCaller   bool
-	onPanic     zapcore.CheckWriteHook // default is WriteThenPanic
-	onFatal     zapcore.CheckWriteHook // default is WriteThenFatal
+	onPanic     ladcore.CheckWriteHook // default is WriteThenPanic
+	onFatal     ladcore.CheckWriteHook // default is WriteThenFatal
 
 	name        string
-	errorOutput zapcore.WriteSyncer
+	errorOutput ladcore.WriteSyncer
 
-	addStack zapcore.LevelEnabler
+	addStack ladcore.LevelEnabler
 
 	callerSkip int
 
-	clock zapcore.Clock
+	clock ladcore.Clock
 }
 
-// New constructs a new Logger from the provided zapcore.Core and Options. If
-// the passed zapcore.Core is nil, it falls back to using a no-op
+// New constructs a new Logger from the provided ladcore.Core and Options. If
+// the passed ladcore.Core is nil, it falls back to using a no-op
 // implementation.
 //
 // This is the most flexible way to construct a Logger, but also the most
@@ -66,15 +66,15 @@ type Logger struct {
 // more convenient.
 //
 // For sample code, see the package-level AdvancedConfiguration example.
-func New(core zapcore.Core, options ...Option) *Logger {
+func New(core ladcore.Core, options ...Option) *Logger {
 	if core == nil {
 		return NewNop()
 	}
 	log := &Logger{
 		core:        core,
-		errorOutput: zapcore.Lock(os.Stderr),
-		addStack:    zapcore.FatalLevel + 1,
-		clock:       zapcore.DefaultClock,
+		errorOutput: ladcore.Lock(os.Stderr),
+		addStack:    ladcore.FatalLevel + 1,
+		clock:       ladcore.DefaultClock,
 	}
 	return log.WithOptions(options...)
 }
@@ -86,10 +86,10 @@ func New(core zapcore.Core, options ...Option) *Logger {
 // re-enable logging.
 func NewNop() *Logger {
 	return &Logger{
-		core:        zapcore.NewNopCore(),
-		errorOutput: zapcore.AddSync(io.Discard),
-		addStack:    zapcore.FatalLevel + 1,
-		clock:       zapcore.DefaultClock,
+		core:        ladcore.NewNopCore(),
+		errorOutput: ladcore.AddSync(io.Discard),
+		addStack:    ladcore.FatalLevel + 1,
+		clock:       ladcore.DefaultClock,
 	}
 }
 
@@ -113,7 +113,7 @@ func NewDevelopment(options ...Option) (*Logger, error) {
 // and panics if the error is non-nil. It is intended for use in variable
 // initialization such as:
 //
-//	var logger = zap.Must(zap.NewProduction())
+//	var logger = lad.Must(lad.NewProduction())
 func Must(logger *Logger, err error) *Logger {
 	if err != nil {
 		panic(err)
@@ -122,20 +122,20 @@ func Must(logger *Logger, err error) *Logger {
 	return logger
 }
 
-// NewExample builds a Logger that's designed for use in zap's testable
+// NewExample builds a Logger that's designed for use in lad's testable
 // examples. It writes DebugLevel and above logs to standard out as JSON, but
 // omits the timestamp and calling function to keep example output
 // short and deterministic.
 func NewExample(options ...Option) *Logger {
-	encoderCfg := zapcore.EncoderConfig{
+	encoderCfg := ladcore.EncoderConfig{
 		MessageKey:     "msg",
 		LevelKey:       "level",
 		NameKey:        "logger",
-		EncodeLevel:    zapcore.LowercaseLevelEncoder,
-		EncodeTime:     zapcore.ISO8601TimeEncoder,
-		EncodeDuration: zapcore.StringDurationEncoder,
+		EncodeLevel:    ladcore.LowercaseLevelEncoder,
+		EncodeTime:     ladcore.ISO8601TimeEncoder,
+		EncodeDuration: ladcore.StringDurationEncoder,
 	}
-	core := zapcore.NewCore(zapcore.NewJSONEncoder(encoderCfg), os.Stdout, DebugLevel)
+	core := ladcore.NewCore(ladcore.NewJSONEncoder(encoderCfg), os.Stdout, DebugLevel)
 	return New(core).WithOptions(options...)
 }
 
@@ -203,22 +203,22 @@ func (log *Logger) WithLazy(fields ...Field) *Logger {
 	if len(fields) == 0 {
 		return log
 	}
-	return log.WithOptions(WrapCore(func(core zapcore.Core) zapcore.Core {
-		return zapcore.NewLazyWith(core, fields)
+	return log.WithOptions(WrapCore(func(core ladcore.Core) ladcore.Core {
+		return ladcore.NewLazyWith(core, fields)
 	}))
 }
 
 // Level reports the minimum enabled level for this logger.
 //
-// For NopLoggers, this is [zapcore.InvalidLevel].
-func (log *Logger) Level() zapcore.Level {
-	return zapcore.LevelOf(log.core)
+// For NopLoggers, this is [ladcore.InvalidLevel].
+func (log *Logger) Level() ladcore.Level {
+	return ladcore.LevelOf(log.core)
 }
 
 // Check returns a CheckedEntry if logging a message at the specified level
 // is enabled. It's a completely optional optimization; in high-performance
 // applications, Check can help avoid allocating a slice to hold fields.
-func (log *Logger) Check(lvl zapcore.Level, msg string) *zapcore.CheckedEntry {
+func (log *Logger) Check(lvl ladcore.Level, msg string) *ladcore.CheckedEntry {
 	return log.check(lvl, msg)
 }
 
@@ -226,7 +226,7 @@ func (log *Logger) Check(lvl zapcore.Level, msg string) *zapcore.CheckedEntry {
 // passed at the log site, as well as any fields accumulated on the logger.
 // Any Fields that require  evaluation (such as Objects) are evaluated upon
 // invocation of Log.
-func (log *Logger) Log(lvl zapcore.Level, msg string, fields ...Field) {
+func (log *Logger) Log(lvl ladcore.Level, msg string, fields ...Field) {
 	if ce := log.check(lvl, msg); ce != nil {
 		ce.Write(fields...)
 	}
@@ -303,8 +303,8 @@ func (log *Logger) Sync() error {
 	return log.core.Sync()
 }
 
-// Core returns the Logger's underlying zapcore.Core.
-func (log *Logger) Core() zapcore.Core {
+// Core returns the Logger's underlying ladcore.Core.
+func (log *Logger) Core() ladcore.Core {
 	return log.core
 }
 
@@ -319,7 +319,7 @@ func (log *Logger) clone() *Logger {
 	return &clone
 }
 
-func (log *Logger) check(lvl zapcore.Level, msg string) *zapcore.CheckedEntry {
+func (log *Logger) check(lvl ladcore.Level, msg string) *ladcore.CheckedEntry {
 	// Logger.check must always be called directly by a method in the
 	// Logger interface (e.g., Check, Info, Fatal).
 	// This skips Logger.check and the Info/Fatal/Check/etc. method that
@@ -328,13 +328,13 @@ func (log *Logger) check(lvl zapcore.Level, msg string) *zapcore.CheckedEntry {
 
 	// Check the level first to reduce the cost of disabled log calls.
 	// Since Panic and higher may exit, we skip the optimization for those levels.
-	if lvl < zapcore.DPanicLevel && !log.core.Enabled(lvl) {
+	if lvl < ladcore.DPanicLevel && !log.core.Enabled(lvl) {
 		return nil
 	}
 
 	// Create basic checked entry thru the core; this will be non-nil if the
 	// log message will actually be written somewhere.
-	ent := zapcore.Entry{
+	ent := ladcore.Entry{
 		LoggerName: log.name,
 		Time:       log.clock.Now(),
 		Level:      lvl,
@@ -345,13 +345,13 @@ func (log *Logger) check(lvl zapcore.Level, msg string) *zapcore.CheckedEntry {
 
 	// Set up any required terminal behavior.
 	switch ent.Level {
-	case zapcore.PanicLevel:
-		ce = ce.After(ent, terminalHookOverride(zapcore.WriteThenPanic, log.onPanic))
-	case zapcore.FatalLevel:
-		ce = ce.After(ent, terminalHookOverride(zapcore.WriteThenFatal, log.onFatal))
-	case zapcore.DPanicLevel:
+	case ladcore.PanicLevel:
+		ce = ce.After(ent, terminalHookOverride(ladcore.WriteThenPanic, log.onPanic))
+	case ladcore.FatalLevel:
+		ce = ce.After(ent, terminalHookOverride(ladcore.WriteThenFatal, log.onFatal))
+	case ladcore.DPanicLevel:
 		if log.development {
-			ce = ce.After(ent, terminalHookOverride(zapcore.WriteThenPanic, log.onPanic))
+			ce = ce.After(ent, terminalHookOverride(ladcore.WriteThenPanic, log.onPanic))
 		}
 	}
 
@@ -394,7 +394,7 @@ func (log *Logger) check(lvl zapcore.Level, msg string) *zapcore.CheckedEntry {
 	frame, more := stack.Next()
 
 	if log.addCaller {
-		ce.Caller = zapcore.EntryCaller{
+		ce.Caller = ladcore.EntryCaller{
 			Defined:  frame.PC != 0,
 			PC:       frame.PC,
 			File:     frame.File,
@@ -421,18 +421,18 @@ func (log *Logger) check(lvl zapcore.Level, msg string) *zapcore.CheckedEntry {
 	return ce
 }
 
-func terminalHookOverride(defaultHook, override zapcore.CheckWriteHook) zapcore.CheckWriteHook {
+func terminalHookOverride(defaultHook, override ladcore.CheckWriteHook) ladcore.CheckWriteHook {
 	// A nil or WriteThenNoop hook will lead to continued execution after
 	// a Panic or Fatal log entry, which is unexpected. For example,
 	//
 	//   f, err := os.Open(..)
 	//   if err != nil {
-	//     log.Fatal("cannot open", zap.Error(err))
+	//     log.Fatal("cannot open", lad.Error(err))
 	//   }
 	//   fmt.Println(f.Name())
 	//
 	// The f.Name() will panic if we continue execution after the log.Fatal.
-	if override == nil || override == zapcore.WriteThenNoop {
+	if override == nil || override == ladcore.WriteThenNoop {
 		return defaultHook
 	}
 	return override

@@ -35,7 +35,7 @@ jobs:
         go mod download
         (cd tools && go mod download)
         (cd benchmarks && go mod download)
-        (cd zapgrpc/internal/test && go mod download)
+        (cd ladgrpc/internal/test && go mod download)
 
     - name: Test
       run: make cover

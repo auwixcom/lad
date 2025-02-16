@@ -18,17 +18,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package zap provides fast, structured, leveled logging.
+// Package lad provides fast, structured, leveled logging.
 //
 // For applications that log in the hot path, reflection-based serialization
 // and string formatting are prohibitively expensive - they're CPU-intensive
 // and make many small allocations. Put differently, using json.Marshal and
 // fmt.Fprintf to log tons of interface{} makes your application slow.
 //
-// Zap takes a different approach. It includes a reflection-free,
+// lad takes a different approach. It includes a reflection-free,
 // zero-allocation JSON encoder, and the base Logger strives to avoid
 // serialization overhead and allocations wherever possible. By building the
-// high-level SugaredLogger on that foundation, zap lets users choose when
+// high-level SugaredLogger on that foundation, lad lets users choose when
 // they need to count every allocation and when they'd prefer a more familiar,
 // loosely typed API.
 //
@@ -42,7 +42,7 @@
 // accept strongly typed fields - see the SugaredLogger.With documentation for
 // details.)
 //
-//	sugar := zap.NewExample().Sugar()
+//	sugar := lad.NewExample().Sugar()
 //	defer sugar.Sync()
 //	sugar.Infow("failed to fetch URL",
 //	  "url", "http://example.com",
@@ -51,7 +51,7 @@
 //	)
 //	sugar.Infof("failed to fetch URL: %s", "http://example.com")
 //
-// By default, loggers are unbuffered. However, since zap's low-level APIs
+// By default, loggers are unbuffered. However, since lad's low-level APIs
 // allow buffering, calling Sync before letting your process exit is a good
 // habit.
 //
@@ -59,59 +59,59 @@
 // use the Logger. It's even faster than the SugaredLogger and allocates far
 // less, but it only supports strongly-typed, structured logging.
 //
-//	logger := zap.NewExample()
+//	logger := lad.NewExample()
 //	defer logger.Sync()
 //	logger.Info("failed to fetch URL",
-//	  zap.String("url", "http://example.com"),
-//	  zap.Int("attempt", 3),
-//	  zap.Duration("backoff", time.Second),
+//	  lad.String("url", "http://example.com"),
+//	  lad.Int("attempt", 3),
+//	  lad.Duration("backoff", time.Second),
 //	)
 //
 // Choosing between the Logger and SugaredLogger doesn't need to be an
 // application-wide decision: converting between the two is simple and
 // inexpensive.
 //
-//	logger := zap.NewExample()
+//	logger := lad.NewExample()
 //	defer logger.Sync()
 //	sugar := logger.Sugar()
 //	plain := sugar.Desugar()
 //
-// # Configuring Zap
+// # Configuring lad
 //
-// The simplest way to build a Logger is to use zap's opinionated presets:
+// The simplest way to build a Logger is to use lad's opinionated presets:
 // NewExample, NewProduction, and NewDevelopment. These presets build a logger
 // with a single function call:
 //
-//	logger, err := zap.NewProduction()
+//	logger, err := lad.NewProduction()
 //	if err != nil {
-//	  log.Fatalf("can't initialize zap logger: %v", err)
+//	  log.Fatalf("can't initialize lad logger: %v", err)
 //	}
 //	defer logger.Sync()
 //
 // Presets are fine for small projects, but larger projects and organizations
-// naturally require a bit more customization. For most users, zap's Config
+// naturally require a bit more customization. For most users, lad's Config
 // struct strikes the right balance between flexibility and convenience. See
 // the package-level BasicConfiguration example for sample code.
 //
 // More unusual configurations (splitting output between files, sending logs
 // to a message queue, etc.) are possible, but require direct use of
-// go.uber.org/zap/zapcore. See the package-level AdvancedConfiguration
+// github.com/auwixcom/lad/ladcore. See the package-level AdvancedConfiguration
 // example for sample code.
 //
-// # Extending Zap
+// # Extending lad
 //
-// The zap package itself is a relatively thin wrapper around the interfaces
-// in go.uber.org/zap/zapcore. Extending zap to support a new encoding (e.g.,
+// The lad package itself is a relatively thin wrapper around the interfaces
+// in github.com/auwixcom/lad/ladcore. Extending lad to support a new encoding (e.g.,
 // BSON), a new log sink (e.g., Kafka), or something more exotic (perhaps an
 // exception aggregation service, like Sentry or Rollbar) typically requires
-// implementing the zapcore.Encoder, zapcore.WriteSyncer, or zapcore.Core
-// interfaces. See the zapcore documentation for details.
+// implementing the ladcore.Encoder, ladcore.WriteSyncer, or ladcore.Core
+// interfaces. See the ladcore documentation for details.
 //
 // Similarly, package authors can use the high-performance Encoder and Core
-// implementations in the zapcore package to build their own loggers.
+// implementations in the ladcore package to build their own loggers.
 //
 // # Frequently Asked Questions
 //
 // An FAQ covering everything from installation errors to design decisions is
-// available at https://github.com/uber-go/zap/blob/master/FAQ.md.
-package zap // import "go.uber.org/zap"
+// available at https://github.com/uber-go/lad/blob/master/FAQ.md.
+package lad // import "github.com/auwixcom/lad"

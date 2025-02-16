@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"os"
@@ -26,9 +26,9 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/auwixcom/lad/ladcore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zapcore"
 )
 
 func TestConfig(t *testing.T) {
@@ -52,7 +52,7 @@ func TestConfig(t *testing.T) {
 			expectRe: "DEBUG\t[a-z0-9_-]+/config_test.go:" + `\d+` + "\tdebug\t" + `{"k": "v", "z": "zz"}` + "\n" +
 				"INFO\t[a-z0-9_-]+/config_test.go:" + `\d+` + "\tinfo\t" + `{"k": "v", "z": "zz"}` + "\n" +
 				"WARN\t[a-z0-9_-]+/config_test.go:" + `\d+` + "\twarn\t" + `{"k": "v", "z": "zz"}` + "\n" +
-				`go.uber.org/zap.TestConfig.\w+`,
+				`github.com/auwixcom/lad.TestConfig.\w+`,
 		},
 	}
 
@@ -123,9 +123,9 @@ func TestConfigWithMissingAttributes(t *testing.T) {
 		{
 			desc: "missing encoder time in encoder config",
 			cfg: Config{
-				Level:    NewAtomicLevelAt(zapcore.InfoLevel),
+				Level:    NewAtomicLevelAt(ladcore.InfoLevel),
 				Encoding: "json",
-				EncoderConfig: zapcore.EncoderConfig{
+				EncoderConfig: ladcore.EncoderConfig{
 					MessageKey: "msg",
 					TimeKey:    "ts",
 				},
@@ -143,15 +143,15 @@ func TestConfigWithMissingAttributes(t *testing.T) {
 	}
 }
 
-func makeSamplerCountingHook() (h func(zapcore.Entry, zapcore.SamplingDecision),
+func makeSamplerCountingHook() (h func(ladcore.Entry, ladcore.SamplingDecision),
 	dropped, sampled *atomic.Int64,
 ) {
 	dropped = new(atomic.Int64)
 	sampled = new(atomic.Int64)
-	h = func(_ zapcore.Entry, dec zapcore.SamplingDecision) {
-		if dec&zapcore.LogDropped > 0 {
+	h = func(_ ladcore.Entry, dec ladcore.SamplingDecision) {
+		if dec&ladcore.LogDropped > 0 {
 			dropped.Add(1)
-		} else if dec&zapcore.LogSampled > 0 {
+		} else if dec&ladcore.LogSampled > 0 {
 			sampled.Add(1)
 		}
 	}

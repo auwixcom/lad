@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"errors"
@@ -26,7 +26,7 @@ import (
 	"testing"
 	"time"
 
-	"go.uber.org/zap/zapcore"
+	"github.com/auwixcom/lad/ladcore"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -36,7 +36,7 @@ func BenchmarkBoolsArrayMarshaler(b *testing.B) {
 	// Keep this benchmark here to capture the overhead of the ArrayMarshaler
 	// wrapper.
 	bs := make([]bool, 50)
-	enc := zapcore.NewJSONEncoder(zapcore.EncoderConfig{})
+	enc := ladcore.NewJSONEncoder(ladcore.EncoderConfig{})
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Bools("array", bs).AddTo(enc.Clone())
@@ -45,7 +45,7 @@ func BenchmarkBoolsArrayMarshaler(b *testing.B) {
 
 func BenchmarkBoolsReflect(b *testing.B) {
 	bs := make([]bool, 50)
-	enc := zapcore.NewJSONEncoder(zapcore.EncoderConfig{})
+	enc := ladcore.NewJSONEncoder(ladcore.EncoderConfig{})
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		Reflect("array", bs).AddTo(enc.Clone())
@@ -101,7 +101,7 @@ func TestArrayWrappers(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		enc := zapcore.NewMapObjectEncoder()
+		enc := ladcore.NewMapObjectEncoder()
 		tt.field.Key = "k"
 		tt.field.AddTo(enc)
 		assert.Equal(t, tt.expected, enc.Fields["k"], "%s: unexpected map contents.", tt.desc)
@@ -176,7 +176,7 @@ func TestObjectsAndObjectValues(t *testing.T) {
 
 			tt.give.Key = "k"
 
-			enc := zapcore.NewMapObjectEncoder()
+			enc := ladcore.NewMapObjectEncoder()
 			tt.give.AddTo(enc)
 			assert.Equal(t, tt.want, enc.Fields["k"])
 		})
@@ -185,7 +185,7 @@ func TestObjectsAndObjectValues(t *testing.T) {
 
 type emptyObject struct{}
 
-func (*emptyObject) MarshalLogObject(zapcore.ObjectEncoder) error {
+func (*emptyObject) MarshalLogObject(ladcore.ObjectEncoder) error {
 	return nil
 }
 
@@ -194,7 +194,7 @@ type fakeObject struct {
 	err   error // marshaling error, if any
 }
 
-func (o *fakeObject) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+func (o *fakeObject) MarshalLogObject(enc ladcore.ObjectEncoder) error {
 	enc.AddString("value", o.value)
 	return o.err
 }
@@ -243,7 +243,7 @@ func TestObjectsAndObjectValues_marshalError(t *testing.T) {
 
 			tt.give.Key = "k"
 
-			enc := zapcore.NewMapObjectEncoder()
+			enc := ladcore.NewMapObjectEncoder()
 			tt.give.AddTo(enc)
 
 			require.Contains(t, enc.Fields, "k")
@@ -308,7 +308,7 @@ func TestStringers(t *testing.T) {
 
 			tt.give.Key = "k"
 
-			enc := zapcore.NewMapObjectEncoder()
+			enc := ladcore.NewMapObjectEncoder()
 			tt.give.AddTo(enc)
 			assert.Equal(t, tt.want, enc.Fields["k"])
 		})

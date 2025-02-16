@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"errors"
@@ -29,10 +29,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/auwixcom/lad/ladcore"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/multierr"
-	"go.uber.org/zap/zapcore"
 )
 
 func TestOpenNoPaths(t *testing.T) {
@@ -42,7 +42,7 @@ func TestOpenNoPaths(t *testing.T) {
 	assert.NoError(t, err, "Expected opening no paths to succeed.")
 	assert.Equal(
 		t,
-		zapcore.AddSync(io.Discard),
+		ladcore.AddSync(io.Discard),
 		ws,
 		"Expected opening no paths to return a no-op WriteSyncer.",
 	)

@@ -18,6 +18,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// Package benchmarks contains only benchmarks comparing zap to other
+// Package benchmarks contains only benchmarks comparing lad to other
 // structured logging libraries.
 package benchmarks

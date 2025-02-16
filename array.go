@@ -18,20 +18,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-package zap
+package lad
 
 import (
 	"fmt"
 	"time"
 
-	"go.uber.org/zap/zapcore"
+	"github.com/auwixcom/lad/ladcore"
 )
 
 // Array constructs a field with the given key and ArrayMarshaler. It provides
 // a flexible, but still type-safe and efficient, way to add array-like types
 // to the logging context. The struct's MarshalLogArray method is called lazily.
-func Array(key string, val zapcore.ArrayMarshaler) Field {
-	return Field{Key: key, Type: zapcore.ArrayMarshalerType, Interface: val}
+func Array(key string, val ladcore.ArrayMarshaler) Field {
+	return Field{Key: key, Type: ladcore.ArrayMarshalerType, Interface: val}
 }
 
 // Bools constructs a field that carries a slice of bools.
@@ -96,9 +96,9 @@ func Int8s(key string, nums []int8) Field {
 }
 
 // Objects constructs a field with the given key, holding a list of the
-// provided objects that can be marshaled by Zap.
+// provided objects that can be marshaled by lad.
 //
-// Note that these objects must implement zapcore.ObjectMarshaler directly.
+// Note that these objects must implement ladcore.ObjectMarshaler directly.
 // That is, if you're trying to marshal a []Request, the MarshalLogObject
 // method must be declared on the Request type, not its pointer (*Request).
 // If it's on the pointer, use ObjectValues.
@@ -107,33 +107,33 @@ func Int8s(key string, nums []int8) Field {
 // can log a slice of those objects with Objects like so:
 //
 //	type Author struct{ ... }
-//	func (a Author) MarshalLogObject(enc zapcore.ObjectEncoder) error
+//	func (a Author) MarshalLogObject(enc ladcore.ObjectEncoder) error
 //
 //	var authors []Author = ...
-//	logger.Info("loading article", zap.Objects("authors", authors))
+//	logger.Info("loading article", lad.Objects("authors", authors))
 //
 // Similarly, given a type that implements MarshalLogObject on its pointer
 // receiver, you can log a slice of pointers to that object with Objects like
 // so:
 //
 //	type Request struct{ ... }
-//	func (r *Request) MarshalLogObject(enc zapcore.ObjectEncoder) error
+//	func (r *Request) MarshalLogObject(enc ladcore.ObjectEncoder) error
 //
 //	var requests []*Request = ...
-//	logger.Info("sending requests", zap.Objects("requests", requests))
+//	logger.Info("sending requests", lad.Objects("requests", requests))
 //
 // If instead, you have a slice of values of such an object, use the
 // ObjectValues constructor.
 //
 //	var requests []Request = ...
-//	logger.Info("sending requests", zap.ObjectValues("requests", requests))
-func Objects[T zapcore.ObjectMarshaler](key string, values []T) Field {
+//	logger.Info("sending requests", lad.ObjectValues("requests", requests))
+func Objects[T ladcore.ObjectMarshaler](key string, values []T) Field {
 	return Array(key, objects[T](values))
 }
 
-type objects[T zapcore.ObjectMarshaler] []T
+type objects[T ladcore.ObjectMarshaler] []T
 
-func (os objects[T]) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (os objects[T]) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for _, o := range os {
 		if err := arr.AppendObject(o); err != nil {
 			return err
@@ -143,16 +143,16 @@ func (os objects[T]) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 }
 
 // ObjectMarshalerPtr is a constraint that specifies that the given type
-// implements zapcore.ObjectMarshaler on a pointer receiver.
+// implements ladcore.ObjectMarshaler on a pointer receiver.
 type ObjectMarshalerPtr[T any] interface {
 	*T
-	zapcore.ObjectMarshaler
+	ladcore.ObjectMarshaler
 }
 
 // ObjectValues constructs a field with the given key, holding a list of the
-// provided objects, where pointers to these objects can be marshaled by Zap.
+// provided objects, where pointers to these objects can be marshaled by lad.
 //
-// Note that pointers to these objects must implement zapcore.ObjectMarshaler.
+// Note that pointers to these objects must implement ladcore.ObjectMarshaler.
 // That is, if you're trying to marshal a []Request, the MarshalLogObject
 // method must be declared on the *Request type, not the value (Request).
 // If it's on the value, use Objects.
@@ -161,23 +161,23 @@ type ObjectMarshalerPtr[T any] interface {
 // you can log a slice of those objects with ObjectValues like so:
 //
 //	type Request struct{ ... }
-//	func (r *Request) MarshalLogObject(enc zapcore.ObjectEncoder) error
+//	func (r *Request) MarshalLogObject(enc ladcore.ObjectEncoder) error
 //
 //	var requests []Request = ...
-//	logger.Info("sending requests", zap.ObjectValues("requests", requests))
+//	logger.Info("sending requests", lad.ObjectValues("requests", requests))
 //
 // If instead, you have a slice of pointers of such an object, use the Objects
 // field constructor.
 //
 //	var requests []*Request = ...
-//	logger.Info("sending requests", zap.Objects("requests", requests))
+//	logger.Info("sending requests", lad.Objects("requests", requests))
 func ObjectValues[T any, P ObjectMarshalerPtr[T]](key string, values []T) Field {
 	return Array(key, objectValues[T, P](values))
 }
 
 type objectValues[T any, P ObjectMarshalerPtr[T]] []T
 
-func (os objectValues[T, P]) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (os objectValues[T, P]) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range os {
 		// It is necessary for us to explicitly reference the "P" type.
 		// We cannot simply pass "&os[i]" to AppendObject because its type
@@ -208,7 +208,7 @@ func Strings(key string, ss []string) Field {
 //	func (a Request) String() string
 //
 //	var requests []Request = ...
-//	logger.Info("sending requests", zap.Stringers("requests", requests))
+//	logger.Info("sending requests", lad.Stringers("requests", requests))
 //
 // Note that these objects must implement fmt.Stringer directly.
 // That is, if you're trying to marshal a []Request, the String method
@@ -219,7 +219,7 @@ func Stringers[T fmt.Stringer](key string, values []T) Field {
 
 type stringers[T fmt.Stringer] []T
 
-func (os stringers[T]) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (os stringers[T]) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for _, o := range os {
 		arr.AppendString(o.String())
 	}
@@ -268,7 +268,7 @@ func Errors(key string, errs []error) Field {
 
 type bools []bool
 
-func (bs bools) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (bs bools) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range bs {
 		arr.AppendBool(bs[i])
 	}
@@ -277,7 +277,7 @@ func (bs bools) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type byteStringsArray [][]byte
 
-func (bss byteStringsArray) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (bss byteStringsArray) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range bss {
 		arr.AppendByteString(bss[i])
 	}
@@ -286,7 +286,7 @@ func (bss byteStringsArray) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type complex128s []complex128
 
-func (nums complex128s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums complex128s) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendComplex128(nums[i])
 	}
@@ -295,7 +295,7 @@ func (nums complex128s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type complex64s []complex64
 
-func (nums complex64s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums complex64s) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendComplex64(nums[i])
 	}
@@ -304,7 +304,7 @@ func (nums complex64s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type durations []time.Duration
 
-func (ds durations) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (ds durations) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range ds {
 		arr.AppendDuration(ds[i])
 	}
@@ -313,7 +313,7 @@ func (ds durations) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type float64s []float64
 
-func (nums float64s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums float64s) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendFloat64(nums[i])
 	}
@@ -322,7 +322,7 @@ func (nums float64s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type float32s []float32
 
-func (nums float32s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums float32s) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendFloat32(nums[i])
 	}
@@ -331,7 +331,7 @@ func (nums float32s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type ints []int
 
-func (nums ints) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums ints) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendInt(nums[i])
 	}
@@ -340,7 +340,7 @@ func (nums ints) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type int64s []int64
 
-func (nums int64s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums int64s) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendInt64(nums[i])
 	}
@@ -349,7 +349,7 @@ func (nums int64s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type int32s []int32
 
-func (nums int32s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums int32s) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendInt32(nums[i])
 	}
@@ -358,7 +358,7 @@ func (nums int32s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type int16s []int16
 
-func (nums int16s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums int16s) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendInt16(nums[i])
 	}
@@ -367,7 +367,7 @@ func (nums int16s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type int8s []int8
 
-func (nums int8s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums int8s) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendInt8(nums[i])
 	}
@@ -376,7 +376,7 @@ func (nums int8s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type stringArray []string
 
-func (ss stringArray) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (ss stringArray) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range ss {
 		arr.AppendString(ss[i])
 	}
@@ -385,7 +385,7 @@ func (ss stringArray) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type times []time.Time
 
-func (ts times) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (ts times) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range ts {
 		arr.AppendTime(ts[i])
 	}
@@ -394,7 +394,7 @@ func (ts times) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type uints []uint
 
-func (nums uints) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums uints) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendUint(nums[i])
 	}
@@ -403,7 +403,7 @@ func (nums uints) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type uint64s []uint64
 
-func (nums uint64s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums uint64s) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendUint64(nums[i])
 	}
@@ -412,7 +412,7 @@ func (nums uint64s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type uint32s []uint32
 
-func (nums uint32s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums uint32s) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendUint32(nums[i])
 	}
@@ -421,7 +421,7 @@ func (nums uint32s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type uint16s []uint16
 
-func (nums uint16s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums uint16s) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendUint16(nums[i])
 	}
@@ -430,7 +430,7 @@ func (nums uint16s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type uint8s []uint8
 
-func (nums uint8s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums uint8s) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendUint8(nums[i])
 	}
@@ -439,7 +439,7 @@ func (nums uint8s) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 
 type uintptrs []uintptr
 
-func (nums uintptrs) MarshalLogArray(arr zapcore.ArrayEncoder) error {
+func (nums uintptrs) MarshalLogArray(arr ladcore.ArrayEncoder) error {
 	for i := range nums {
 		arr.AppendUintptr(nums[i])
 	}
