@@ -1,4 +1,4 @@
-# :lad: lad
+# Lad
 
 
 <div align="center">
